@@ -1,7 +1,7 @@
 Constantes, usos de função e outras referências que tiveram de ser consultadas durante o trabalho
 
 
-Resolução da tela do dosbox: X=640 Y=480
+Resolução da tela do dosbox: X=639 Y=479
 
 
 FUNÇÕES GRÁFICAS:
@@ -18,7 +18,7 @@ circle - Desenha uma circunferência
 uso: push xc; push yc; push r; call circle; (xc+r≤639,yc+r≤479)e(xc-r≥0,yc-r≥0); cor definida na variavel cor
 
 fcircle (full_circle) - Desenha um círculo e o colore
-uso: push xc; push yc; push r; call full_circle; (xc+r≤639,yc+r≤479) e (xc-r≥0,yc-r≥0); cor definida na variavel “cor”
+uso: push xc; push yc; push r; call fcircle; (xc+r≤639,yc+r≤479) e (xc-r≥0,yc-r≥0); cor definida na variavel “cor”
 
 line - desenha um segmento de reta
 push x1; push y1; push x2; push y2; call line; (x≤639, y≤479)
@@ -32,7 +32,7 @@ Restaurar o modo de vídeo original (AL = [modo aanterior]; AH = 0Fh; INT 10h)
 
 
 LEITURA DE TECLADO:
-INT 21h
+INT 9h
 TODO: Olhar a documentação do 8086 pra terminar essa sessão depois...
 
 Ideias de implementação:
@@ -43,7 +43,7 @@ Legenda:
     Gol = objetivo do jogo, o jogador que colocar a bola dentro do gol ganha.
     
 Colisões com o "Goleiro":
-    > Receber movimentação por interrupções de teclado. Ex.: w,s para o P1 e i,k para o P2;
+    > Receber movimentação por interrupções de teclado. Ex.: w,s para o P2 e ^,v para o P1;
     > Salvar as posições x,y do goleiro como variáveis;
     > Tratar colisão com os "goleiros" como bounding boxes;
     > Aproximar a área de colisao da bola a um quadrado de lado L = 2R = Diâmetro.
@@ -59,6 +59,6 @@ Barreiras:
 
 Etapas:
     1 - Replicar o lab. da bolinha; (Até sábado 24/01); 3 dias
-    2 - Adicionar "raquetes"; (Domingo 25/01); 1 dia
+    2 - Adicionar "barreiras"; (Domingo 25/01); 1 dia
     3 - Adicionar o "goleiro" como elemento; (Começar domingo 25/01 e terminar até terça 28/01); 2 dia
     4 - Menu; (De quarta 29/01 até sexta 31/01); 2 dias
