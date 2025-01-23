@@ -23,8 +23,8 @@ segment code
     CALL salvar_modo_grafico
     CALL iniciar_modo_grafico_VGA
 
-    CALL desenhar_bordas
-    CALL desenhar_bola
+    CALL desenha_bordas
+    CALL desenha_bola
     ;TODO: CALL desenhar_raquetes
 
     main_loop:
@@ -38,10 +38,11 @@ segment code
     CALL encerrar_programa
     
     proximo_frame:
+        CALL desenha_bordas
         CALL quica_bola
+        CALL limpa_bola
         CALL move_bola
-        CALL desenhar_bordas
-        CALL desenhar_bola
+        CALL desenha_bola
         RET
 
     quica_bola:
@@ -89,7 +90,7 @@ segment code
         POP AX
         RET
 
-    desenhar_bordas:
+    desenha_bordas:
         PUSH AX
 
         MOV BYTE [cor], branco_intenso
@@ -121,7 +122,24 @@ segment code
         POP AX
         RET
     
-    desenhar_bola:
+    limpa_bola:
+        PUSH AX
+
+        MOV BYTE [cor], preto
+
+        MOV AX, [bola_posicao_x]
+        PUSH AX
+        MOV AX, [bola_posicao_y]
+        PUSH AX
+        MOV AX, [bola_raio]
+        PUSH AX
+        CALL fcircle
+
+        POP AX
+        
+        RET
+    
+    desenha_bola:
         PUSH AX
 
         MOV BYTE [cor], vermelho
