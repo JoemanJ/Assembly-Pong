@@ -10,6 +10,15 @@ segment code
     extern plot_xy
     extern fcircle
     extern line
+    
+    extern preparar_int9
+    extern salvar_modo_grafico
+    extern iniciar_modo_grafico_VGA
+    extern restaurar_modo_grafico
+    extern encerrar_programa
+
+    ; TODO: Terminar interrupção de teclado para sair
+    CALL preparar_int9
 
     CALL salvar_modo_grafico
     CALL iniciar_modo_grafico_VGA
@@ -35,21 +44,6 @@ segment code
     proximo_frame:
         CALL desenhar_bordas
         CALL desenhar_bola
-        RET
-
-    salvar_modo_grafico:
-        PUSH AX
-        MOV AX, 0Fh
-        INT 10h
-        MOV [modo_grafico_anterior], AL
-        POP AX
-        RET
-
-    iniciar_modo_grafico_VGA:
-        PUSH AX
-        MOV AX, 12h
-        INT 10h
-        POP AX
         RET
 
     desenhar_bordas:
@@ -100,18 +94,6 @@ segment code
         POP AX
         
         RET
-    
-    restaurar_modo_grafico:
-        PUSH AX
-        MOV AH, 0
-        MOV AL, [modo_grafico_anterior]
-        INT 10h
-        POP AX
-        RET
-    
-    encerrar_programa:
-        MOV AH, 4Ch
-        INT 21h
 
 
 segment data
@@ -134,8 +116,6 @@ segment data
     magenta_claro	equ		13	; 1 1 0 1 magenta claro
     amarelo			equ		14	; 1 1 1 0 amarelo
     branco_intenso	equ		15	; 1 1 1 1 branco INTenso
-    
-    modo_grafico_anterior db 0
     
     ; variaveis da bola
     bola_raio equ 10

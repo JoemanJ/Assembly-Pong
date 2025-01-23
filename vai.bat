@@ -5,5 +5,6 @@ CALL NASM line
 CALL NASM circle
 CALL NASM fcircle
 CALL NASM game
+CALL NASM setup
 
-CALL FREELINK game line fcircle circle cursor caracter plot_xy
+CALL FREELINK game line fcircle circle cursor caracter plot_xy setup
