@@ -1,3 +1,5 @@
 *.OBJ
 *.LST
 *.EXE
+teste.asm
+Tecbuf_Com.asm

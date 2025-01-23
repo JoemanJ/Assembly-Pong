@@ -25,25 +25,68 @@ segment code
 
     CALL desenhar_bordas
     CALL desenhar_bola
-    ;CALL desenhar_raquetes
+    ;TODO: CALL desenhar_raquetes
 
-    lup:
-    ;Encerrar programa caso alguma tecla seja pressionada
-    ;CALL verifica_tecla_pressionada ; AL=0 se nada pressionado, AL!=0 caso contrario
-    
-    ;CMP AL, 0
-    ;JNE fim
+    main_loop:
+    ;TODO: Verificar tecla pressionada...
 
     CALL proximo_frame
-    JMP lup
+    JMP main_loop
 
     fim:
     CALL restaurar_modo_grafico
     CALL encerrar_programa
     
     proximo_frame:
+        CALL quica_bola
+        CALL move_bola
         CALL desenhar_bordas
         CALL desenhar_bola
+        RET
+
+    quica_bola:
+        CALL quica_bola_parede_cima
+        CALL quica_bola_parede_baixo
+        RET
+        
+    quica_bola_parede_cima:
+        PUSH AX
+
+        MOV AX, bola_raio
+        CMP AX, [bola_posicao_y]
+        JAE quica_bola_parede_cima_fim
+        NEG WORD [bola_velocidade_y]
+
+        quica_bola_parede_cima_fim:
+        POP AX
+        RET
+
+    quica_bola_parede_baixo:
+        PUSH AX
+
+        MOV AX, 479
+        SUB AX, bola_raio
+        CMP AX, [bola_posicao_y]
+        JBE quica_bola_parede_baixo_fim
+        NEG WORD [bola_velocidade_y]
+
+        quica_bola_parede_baixo_fim:
+        POP AX
+        RET
+
+
+    move_bola:
+        PUSH AX
+
+        MOV AX, [bola_posicao_x]
+        ADD AX, [bola_velocidade_x]
+        MOV [bola_posicao_x], AX
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bola_velocidade_y]
+        MOV [bola_posicao_y], AX
+
+        POP AX
         RET
 
     desenhar_bordas:
@@ -83,11 +126,11 @@ segment code
 
         MOV BYTE [cor], vermelho
 
-        MOV AX, 320
+        MOV AX, [bola_posicao_x]
         PUSH AX
-        MOV AX, 240
+        MOV AX, [bola_posicao_y]
         PUSH AX
-        MOV AX, 10
+        MOV AX, [bola_raio]
         PUSH AX
         CALL fcircle
 
@@ -136,6 +179,9 @@ segment data
     raquete_direita_posicao_y dw 240
 
     raquete_direita_velocidade_y dw 0001h
+
+    global tecla
+    tecla db 0
 
 segment stack stack
     resb 256

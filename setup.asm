@@ -1,4 +1,6 @@
 segment code
+    extern tecla
+
     global preparar_int9
     global salvar_modo_grafico
     global iniciar_modo_grafico_VGA
@@ -20,11 +22,12 @@ segment code
 
     int_teclado:
         PUSH AX
-        PUSH BX
 
         XOR AX, AX
         IN AL, PORTA_DADO_TECLADO
-        MOV BL, AL
+        MOV [tecla], AL
+
+        ;Reiniciando o PIC
         IN AL, PORTA_CONTROLE_TECLADO
         OR AL, 80h
         OUT PORTA_CONTROLE_TECLADO, AL
@@ -33,17 +36,7 @@ segment code
         MOV AL, EOI
         OUT PORTA_CONTROLE_PIC, AL
 
-        CMP BL, Q_MINUSCULO
-        JNE int_teclado_IRET
-        CALL restaurar_modo_grafico
-        POP BX
         POP AX
-        CALL encerrar_programa
-
-        int_teclado_IRET:
-        POP BX
-        POP AX
-
         IRET
 
 
@@ -79,9 +72,7 @@ segment data
     PORTA_CONTROLE_TECLADO EQU 61h
     EOI EQU 20h
     PORTA_CONTROLE_PIC EQU 20h
-    Q_MINUSCULO EQU 0x81
-
-    tecla dw 0
+    Q_MINUSCULO EQU 10h
 
     modo_grafico_anterior db 0
 
