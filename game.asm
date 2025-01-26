@@ -10,6 +10,7 @@ segment code
     extern plot_xy
     extern fcircle
     extern line
+    extern fblock
     
     extern preparar_int9
     extern salvar_modo_grafico
@@ -25,6 +26,8 @@ segment code
 
     CALL desenhar_bordas
     CALL desenhar_bola
+    CALL desenhar_blocos
+
     ;TODO: CALL desenhar_raquetes
 
     main_loop:
@@ -121,6 +124,68 @@ segment code
         POP AX
         RET
     
+    desenhar_blocos:
+        PUSH AX
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_1_esq_x]
+        PUSH AX
+        MOV AX,[bloco_1_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblockx
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_2_esq_x]
+        PUSH AX
+        MOV AX,[bloco_2_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_3_esq_x]
+        PUSH AX
+        MOV AX,[bloco_3_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_4_esq_x]
+        PUSH AX
+        MOV AX,[bloco_4_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_5_esq_x]
+        PUSH AX
+        MOV AX,[bloco_5_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        POP AX
+
+        RET
+
     desenhar_bola:
         PUSH AX
 
@@ -167,6 +232,41 @@ segment data
 
     bola_velocidade_x dw 0001h
     bola_velocidade_y dw 0001h
+
+    ; variaveis de blocos
+    bloco_w         dw  10
+    bloco_h         dw  45
+
+    bloco_1_esq_x   dw  20
+    bloco_1_esq_y   dw  48
+
+    bloco_2_esq_x   dw  20
+    bloco_2_esq_y   dw  144
+
+    bloco_3_esq_x   dw  20
+    bloco_3_esq_y   dw  240
+
+    bloco_4_esq_x   dw  20
+    bloco_4_esq_y   dw  336
+
+    bloco_5_esq_x   dw  20
+    bloco_5_esq_y   dw  432
+
+    bloco_1_dir_x   dw  0
+    bloco_1_dir_y   dw  0
+
+    bloco_2_dir_x   dw  0
+    bloco_2_dir_y   dw  0
+
+    bloco_3_dir_x   dw  0
+    bloco_3_dir_y   dw  0
+
+    bloco_4_dir_x   dw  0
+    bloco_4_dir_y   dw  0
+
+    bloco_5_dir_x   dw  0
+    bloco_5_dir_y   dw  0
+
 
     ; variaveis da raquete esquerda
     raquete_esquerda_posicao_x dw 10
