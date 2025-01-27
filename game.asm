@@ -1,7 +1,7 @@
 segment code
     ;Inicializar registradores de segmento
     MOV AX, data
-    MOV DS, AX
+    MOV DS, AX  
     MOV AX, stack
     MOV SS, AX
     MOV SP, stack_top
@@ -42,14 +42,21 @@ segment code
     
     proximo_frame:
         CALL quica_bola
+
+        MOV     BYTE BL, preto
+        PUSH BX
+        call desenhar_bola
         CALL move_bola
         CALL desenhar_bordas
+        MOV     BYTE BL, vermelho
+        PUSH BX
         CALL desenhar_bola
         RET
 
     quica_bola:
         CALL quica_bola_parede_cima
         CALL quica_bola_parede_baixo
+        call quica_bola_bloco_esquerdo
         RET
         
     quica_bola_parede_cima:
@@ -74,9 +81,28 @@ segment code
         NEG WORD [bola_velocidade_y]
 
         quica_bola_parede_baixo_fim:
+        
         POP AX
         RET
 
+    quica_bola_bloco_esquerdo:
+        PUSH AX
+        PUSH BX
+
+        MOV AX, [bloco_1_esq_x]
+        ADD AX, [bloco_w]
+        MOV BX, [bola_posicao_x]
+        SUB BX, bola_raio
+
+        CMP AX, BX 
+        JB quica_bola_bloco_esquerdo_fim
+        
+        quica_bola_bloco_esquerdo_fim:
+
+        POP BX
+        POP AX
+
+        RET
 
     move_bola:
         PUSH AX
@@ -136,7 +162,7 @@ segment code
         PUSH AX
         MOV AX,[bloco_h]
         PUSH AX
-        CALL fblockx
+        CALL fblock
 
         MOV BYTE [cor], cyan_claro
         MOV AX,[bloco_2_esq_x]
@@ -182,14 +208,75 @@ segment code
         PUSH AX
         CALL fblock
 
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_1_dir_x]
+        PUSH AX
+        MOV AX,[bloco_1_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_2_dir_x]
+        PUSH AX
+        MOV AX,[bloco_2_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_3_dir_x]
+        PUSH AX
+        MOV AX,[bloco_3_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_4_dir_x]
+        PUSH AX
+        MOV AX,[bloco_4_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX,[bloco_5_dir_x]
+        PUSH AX
+        MOV AX,[bloco_5_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
         POP AX
 
         RET
 
-    desenhar_bola:
-        PUSH AX
+    desenhar_bola:                      ; passar a cor como parametro pra essa funcao para poder usar ela para apagar a bola tambem
+        PUSH 	BP                      ; colocar a cor em BL e passar BX inteiro por push na stack
+        MOV	 	BP,SP
+        PUSHf                        	;coloca os flags na pilha
+        PUSH 	AX
+        PUSH 	BX
+        
+        MOV		BX,[BP+4]    			;resgata a cor
 
-        MOV BYTE [cor], vermelho
+        MOV BYTE [cor], BL
 
         MOV AX, [bola_posicao_x]
         PUSH AX
@@ -199,9 +286,12 @@ segment code
         PUSH AX
         CALL fcircle
 
-        POP AX
-        
-        RET
+        POP     BX
+        POP     AX
+        POPf
+        POP     BP
+
+        RET 2
 
 
 segment data
@@ -234,8 +324,8 @@ segment data
     bola_velocidade_y dw 0001h
 
     ; variaveis de blocos
-    bloco_w         dw  10
-    bloco_h         dw  45
+    bloco_w         dw  7
+    bloco_h         dw  40
 
     bloco_1_esq_x   dw  20
     bloco_1_esq_y   dw  48
@@ -252,20 +342,20 @@ segment data
     bloco_5_esq_x   dw  20
     bloco_5_esq_y   dw  432
 
-    bloco_1_dir_x   dw  0
-    bloco_1_dir_y   dw  0
+    bloco_1_dir_x   dw  619
+    bloco_1_dir_y   dw  48
 
-    bloco_2_dir_x   dw  0
-    bloco_2_dir_y   dw  0
+    bloco_2_dir_x   dw  619
+    bloco_2_dir_y   dw  144
 
-    bloco_3_dir_x   dw  0
-    bloco_3_dir_y   dw  0
+    bloco_3_dir_x   dw  619
+    bloco_3_dir_y   dw  240
 
-    bloco_4_dir_x   dw  0
-    bloco_4_dir_y   dw  0
+    bloco_4_dir_x   dw  619
+    bloco_4_dir_y   dw  336
 
-    bloco_5_dir_x   dw  0
-    bloco_5_dir_y   dw  0
+    bloco_5_dir_x   dw  619
+    bloco_5_dir_y   dw  432
 
 
     ; variaveis da raquete esquerda

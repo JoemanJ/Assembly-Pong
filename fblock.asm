@@ -22,7 +22,6 @@ fblock:
     MOV		BX,[BP+8]    	;resgata os vALores das coordenadas
     MOV		CX,[BP+6]    	;resgata os vALores das coordenadas
     MOV		DX,[BP+4]    	;resgata os vALores das coordenadas
-    MOV     [x1coord],AX        ;salvando os valores inicias de x1
 
     MOV     [xcenter],AX
     MOV     [ycenter],BX
