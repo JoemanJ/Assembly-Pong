@@ -41,26 +41,30 @@ segment code
     CALL encerrar_programa
     
     proximo_frame:
+        PUSH AX
         CALL quica_bola
 
-        MOV     BYTE BL, preto
-        PUSH BX
+        MOV     BYTE AL, preto
+        PUSH AX
         call desenhar_bola
         CALL move_bola
         CALL desenhar_bordas
-        MOV     BYTE BL, vermelho
-        PUSH BX
+        MOV     BYTE AL, vermelho
+        PUSH AX
         CALL desenhar_bola
+        POP AX
         RET
 
     quica_bola:
         CALL quica_bola_parede_cima
         CALL quica_bola_parede_baixo
-        call quica_bola_bloco_esquerdo
+        CALL quica_bola_bloco_direito
+        CALL quica_bola_bloco_esquerdo
         RET
         
     quica_bola_parede_cima:
         PUSH AX
+        PUSHf
 
         MOV AX, bola_raio
         CMP AX, [bola_posicao_y]
@@ -68,11 +72,13 @@ segment code
         NEG WORD [bola_velocidade_y]
 
         quica_bola_parede_cima_fim:
+        POPf
         POP AX
         RET
 
     quica_bola_parede_baixo:
         PUSH AX
+        PUSHf
 
         MOV AX, 479
         SUB AX, bola_raio
@@ -82,24 +88,380 @@ segment code
 
         quica_bola_parede_baixo_fim:
         
+        POPf
         POP AX
+        RET
+
+    quica_bola_bloco_direito:
+        PUSH AX
+        PUSHf
+
+        MOV AX, [bloco_1_dir_x]
+        SUB AX, [bloco_w]
+        SUB AX, bola_raio
+
+        CMP AX, [bola_posicao_x] 
+        JB possivel_colisao_bloco_direito
+        
+        JMP quica_bola_bloco_direito_fim ; tive que fazer essa gambiarra porque tava fora do range do JAE
+
+        possivel_colisao_bloco_direito:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 1 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_1_dir_y]
+        JA bloco_1_dir_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_1_dir_y]
+        JB bloco_1_dir_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_1_dir_ativo]
+        CMP AX, 1
+        JNE bloco_1_dir_fim
+
+        MOV BYTE [bloco_1_dir_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_1_dir_x]
+        PUSH AX
+        MOV AX,[bloco_1_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_direito_fim
+
+        bloco_1_dir_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 2 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_2_dir_y]
+        JA bloco_2_dir_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_2_dir_y]
+        JB bloco_2_dir_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_2_dir_ativo]
+        CMP AX, 1
+        JNE bloco_2_dir_fim
+
+        MOV BYTE [bloco_2_dir_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_2_dir_x]
+        PUSH AX
+        MOV AX,[bloco_2_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_direito_fim
+
+        bloco_2_dir_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 3 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_3_dir_y]
+        JA bloco_3_dir_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_3_dir_y]
+        JB bloco_3_dir_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_3_dir_ativo]
+        CMP AX, 1
+        JNE bloco_3_dir_fim
+
+        MOV BYTE [bloco_3_dir_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_3_dir_x]
+        PUSH AX
+        MOV AX,[bloco_3_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_direito_fim
+
+        bloco_3_dir_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 4 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_4_dir_y]
+        JA bloco_4_dir_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_4_dir_y]
+        JB bloco_4_dir_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_4_dir_ativo]
+        CMP AX, 1
+        JNE bloco_4_dir_fim
+
+        MOV BYTE [bloco_4_dir_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_4_dir_x]
+        PUSH AX
+        MOV AX,[bloco_4_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_direito_fim
+
+        bloco_4_dir_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 5 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_5_dir_y]
+        JA bloco_5_dir_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_5_dir_y]
+        JB bloco_5_dir_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_5_dir_ativo]
+        CMP AX, 1
+        JNE bloco_5_dir_fim
+
+        MOV BYTE [bloco_5_dir_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_5_dir_x]
+        PUSH AX
+        MOV AX,[bloco_5_dir_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_direito_fim
+
+        bloco_5_dir_fim:
+
+        quica_bola_bloco_direito_fim:
+
+        POPf
+        POP AX
+
         RET
 
     quica_bola_bloco_esquerdo:
         PUSH AX
-        PUSH BX
+        PUSHf
 
         MOV AX, [bloco_1_esq_x]
         ADD AX, [bloco_w]
-        MOV BX, [bola_posicao_x]
-        SUB BX, bola_raio
+        ADD AX, bola_raio
 
-        CMP AX, BX 
-        JB quica_bola_bloco_esquerdo_fim
+        CMP AX, [bola_posicao_x] 
+        JA possivel_colisao_bloco_esquerdo ; verifica se a posicao x da bola para determinar colisoes
         
+        JMP quica_bola_bloco_esquerdo_fim   ; tive que fazer essa gambiarra porque tava fora do range do JBE
+
+        possivel_colisao_bloco_esquerdo:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 1 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_1_esq_y]
+        JA bloco_1_esq_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_1_esq_y]
+        JB bloco_1_esq_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_1_esq_ativo]
+        CMP AX, 1
+        JNE bloco_1_esq_fim
+
+        MOV BYTE [bloco_1_esq_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_1_esq_x]
+        PUSH AX
+        MOV AX,[bloco_1_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_esquerdo_fim
+
+        bloco_1_esq_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 2 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_2_esq_y]
+        JA bloco_2_esq_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_2_esq_y]
+        JB bloco_2_esq_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_2_esq_ativo]
+        CMP AX, 1
+        JNE bloco_2_esq_fim
+
+        MOV BYTE [bloco_2_esq_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_2_esq_x]
+        PUSH AX
+        MOV AX,[bloco_2_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_esquerdo_fim
+
+        bloco_2_esq_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 3 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_3_esq_y]
+        JA bloco_3_esq_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_3_esq_y]
+        JB bloco_3_esq_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_3_esq_ativo]
+        CMP AX, 1
+        JNE bloco_3_esq_fim
+
+        MOV BYTE [bloco_3_esq_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_3_esq_x]
+        PUSH AX
+        MOV AX,[bloco_3_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_esquerdo_fim
+
+        bloco_3_esq_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 4 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_4_esq_y]
+        JA bloco_4_esq_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_4_esq_y]
+        JB bloco_4_esq_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_4_esq_ativo]
+        CMP AX, 1
+        JNE bloco_4_esq_fim
+
+        MOV BYTE [bloco_4_esq_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_4_esq_x]
+        PUSH AX
+        MOV AX,[bloco_4_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_esquerdo_fim
+
+        bloco_4_esq_fim:
+
+        MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 5 esquerdo
+        SUB AX, [bloco_h]
+        CMP AX, [bloco_5_esq_y]
+        JA bloco_5_esq_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, [bloco_h]
+        CMP AX, [bloco_5_esq_y]
+        JB bloco_5_esq_fim
+
+        XOR AX, AX                      ; caso esteja dentro do alcance, verifica se o bloco esta ativo
+        MOV AL, BYTE [bloco_5_esq_ativo]
+        CMP AX, 1
+        JNE bloco_5_esq_fim
+
+        MOV BYTE [bloco_5_esq_ativo], 0  ; caso esteja no alcance e o bloco esteja ativo, desativa o bloco e da bounce
+
+        MOV BYTE [cor], preto
+        MOV AX,[bloco_5_esq_x]
+        PUSH AX
+        MOV AX,[bloco_5_esq_y]
+        PUSH AX
+        MOV AX,[bloco_w]
+        PUSH AX
+        MOV AX,[bloco_h]
+        PUSH AX
+        CALL fblock
+
+        NEG WORD [bola_velocidade_x]
+        JMP quica_bola_bloco_esquerdo_fim
+
+        bloco_5_esq_fim:
+
         quica_bola_bloco_esquerdo_fim:
 
-        POP BX
+        POPf
         POP AX
 
         RET
@@ -269,26 +631,22 @@ segment code
 
     desenhar_bola:                      ; passar a cor como parametro pra essa funcao para poder usar ela para apagar a bola tambem
         PUSH 	BP                      ; colocar a cor em BL e passar BX inteiro por push na stack
-        MOV	 	BP,SP
-        PUSHf                        	;coloca os flags na pilha
+        MOV	 	BP,SP                   
         PUSH 	AX
-        PUSH 	BX
         
-        MOV		BX,[BP+4]    			;resgata a cor
+        MOV		AX,[BP+4]    			;resgata a cor
 
-        MOV BYTE [cor], BL
+        MOV BYTE [cor], AL
 
         MOV AX, [bola_posicao_x]
         PUSH AX
         MOV AX, [bola_posicao_y]
         PUSH AX
-        MOV AX, [bola_raio]
+        MOV AX, bola_raio
         PUSH AX
         CALL fcircle
 
-        POP     BX
         POP     AX
-        POPf
         POP     BP
 
         RET 2
@@ -329,33 +687,43 @@ segment data
 
     bloco_1_esq_x   dw  20
     bloco_1_esq_y   dw  48
+    bloco_1_esq_ativo db 1
 
     bloco_2_esq_x   dw  20
     bloco_2_esq_y   dw  144
+    bloco_2_esq_ativo db 1
 
     bloco_3_esq_x   dw  20
     bloco_3_esq_y   dw  240
+    bloco_3_esq_ativo db 1
 
     bloco_4_esq_x   dw  20
     bloco_4_esq_y   dw  336
+    bloco_4_esq_ativo db 1
 
     bloco_5_esq_x   dw  20
     bloco_5_esq_y   dw  432
+    bloco_5_esq_ativo db 1
 
     bloco_1_dir_x   dw  619
     bloco_1_dir_y   dw  48
+    bloco_1_dir_ativo db 1
 
     bloco_2_dir_x   dw  619
     bloco_2_dir_y   dw  144
+    bloco_2_dir_ativo db 1
 
     bloco_3_dir_x   dw  619
     bloco_3_dir_y   dw  240
+    bloco_3_dir_ativo db 1
 
     bloco_4_dir_x   dw  619
     bloco_4_dir_y   dw  336
+    bloco_4_dir_ativo db 1
 
     bloco_5_dir_x   dw  619
     bloco_5_dir_y   dw  432
+    bloco_5_dir_ativo db 1
 
 
     ; variaveis da raquete esquerda

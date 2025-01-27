@@ -8,6 +8,8 @@ segment code
     global encerrar_programa
 
     preparar_int9:
+        PUSH AX
+
         CLI
         XOR AX, AX
         MOV ES, AX
@@ -18,6 +20,8 @@ segment code
         MOV WORD [ES:9h*4], int_teclado
         MOV [ES:9h*4+2], CS
         STI
+
+        POP AX
         RET
 
     int_teclado:

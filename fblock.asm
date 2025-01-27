@@ -15,8 +15,6 @@ fblock:
     PUSH 	BX
     PUSH	CX
     PUSH	DX
-    PUSH	SI
-    PUSH	DI
     
     MOV		AX,[BP+10]   	;resgata os vALores das coordenadas
     MOV		BX,[BP+8]    	;resgata os vALores das coordenadas
@@ -60,8 +58,7 @@ lup:
     CMP BX,DX               
     JB lup                  ; enquanto y1 nao chegar em y2, nao passa daqui
                             ; quando passar, todos os pixels do quadrado foram pintados
-    POP		DI
-    POP		SI
+
     POP		DX
     POP		CX
     POP		BX
