@@ -6,6 +6,7 @@ segment code
     global iniciar_modo_grafico_VGA
     global restaurar_modo_grafico
     global encerrar_programa
+    global sair
 
     preparar_int9:
         PUSH AX
@@ -19,6 +20,21 @@ segment code
         MOV [CS_INT9_DOS], AX
         MOV WORD [ES:9h*4], int_teclado
         MOV [ES:9h*4+2], CS
+        STI
+
+        POP AX
+        RET
+
+    restaurar_int9:
+        PUSH AX
+
+        CLI
+        XOR AX, AX
+        MOV ES, AX
+        MOV AX, IP_INT9_DOS
+        MOV [ES:9h*4], AX
+        MOV AX, CS_INT9_DOS
+        MOV [ES:9h*4+2], AX
         STI
 
         POP AX
@@ -70,6 +86,11 @@ segment code
     encerrar_programa:
         MOV AH, 4Ch
         INT 21h
+
+    sair:
+        CALL restaurar_int9
+        CALL restaurar_modo_grafico
+        JMP encerrar_programa
 
 segment data
     PORTA_DADO_TECLADO EQU 60h

@@ -7,6 +7,8 @@ segment code
     MOV SP, stack_top
 
     ;Imports
+    extern cursor
+    extern caracter
     extern plot_xy
     extern fcircle
     extern line
@@ -17,8 +19,8 @@ segment code
     extern iniciar_modo_grafico_VGA
     extern restaurar_modo_grafico
     extern encerrar_programa
+    extern sair
 
-    ; TODO: Terminar interrupção de teclado para sair
     CALL preparar_int9
 
     CALL salvar_modo_grafico
@@ -31,7 +33,9 @@ segment code
     ;TODO: CALL desenhar_raquetes
 
     main_loop:
-    ;TODO: Verificar tecla pressionada...
+    CALL verifica_sair
+    CALL atualiza_status_controles
+    CALL executa_controles
 
     CALL proximo_frame
     JMP main_loop
@@ -39,6 +43,122 @@ segment code
     fim:
     CALL restaurar_modo_grafico
     CALL encerrar_programa
+
+    verifica_sair:
+        PUSH AX
+
+        MOV AL, [tecla]
+        CMP AL, Q_SOLTO
+        JNE _verifica_sair_1
+        CALL loop_sair
+
+        _verifica_sair_1:
+        POP AX
+        RET
+
+    loop_sair:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+
+        _loop_sair_1
+
+        MOV BYTE [cor], vermelho
+        MOV BX, mensagem_sair
+        MOV CX, 16
+        MOV DH, 20
+        MOV DL, 32
+        
+        _loop_sair_proximo_caracter:
+        CALL cursor
+
+        MOV AL, [BX]
+        CALL caracter
+
+        INC DL
+        INC BX
+        LOOP _loop_sair_proximo_caracter
+
+        MOV AL, [tecla]
+        CMP AL, Y_SOLTO
+        JNE _loop_sair_2
+        JMP sair
+        _loop_sair_2:
+
+        CMP AL, N_SOLTO
+        JE _loop_sair_fim
+
+        JMP _loop_sair_1
+
+        _loop_sair_fim
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+        RET
+
+    atualiza_status_controles:
+        PUSH AX
+
+        MOV AL, [tecla]
+
+        CMP AL, W_APERTADO
+        JNE _atualiza_status_controles_1
+        OR BYTE [status_controles], P1_CIMA
+        _atualiza_status_controles_1:
+
+        CMP AL, W_SOLTO
+        JNE _atualiza_status_controles_2
+        MOV AH, P1_CIMA
+        NEG AH
+        AND [status_controles], AH
+        _atualiza_status_controles_2:
+
+        CMP AL, S_APERTADO
+        JNE _atualiza_status_controles_3
+        OR BYTE [status_controles], P1_BAIXO
+        _atualiza_status_controles_3:
+
+        CMP AL, S_SOLTO
+        JNE _atualiza_status_controles_4
+        MOV AH, P1_BAIXO
+        NEG AH
+        AND [status_controles], AH
+        _atualiza_status_controles_4:
+
+        CMP AL, CIMA_APERTADO
+        JNE _atualiza_status_controles_5
+        OR BYTE [status_controles], P2_CIMA
+        _atualiza_status_controles_5:
+
+        CMP AL, CIMA_SOLTO
+        JNE _atualiza_status_controles_6
+        MOV AH, P2_CIMA
+        NEG AH
+        AND [status_controles], AH
+        _atualiza_status_controles_6:
+
+        CMP AL, BAIXO_APERTADO
+        JNE _atualiza_status_controles_7
+        OR BYTE [status_controles], P2_BAIXO
+        _atualiza_status_controles_7:
+
+        CMP AL, BAIXO_SOLTO
+        JNE _atualiza_status_controles_8
+        MOV AH, P2_BAIXO
+        NEG AH
+        AND [status_controles], AH
+        _atualiza_status_controles_8:
+
+        POP AX
+        RET
+
+    executa_controles:
+        PUSH AX
+
+        POP AX
+        RET
     
     proximo_frame:
         PUSH AX
@@ -673,6 +793,9 @@ segment data
     amarelo			equ		14	; 1 1 1 0 amarelo
     branco_intenso	equ		15	; 1 1 1 1 branco INTenso
     
+    ; mensagem de sair do jogo
+    mensagem_sair db 'sair? [y]es [n]o'
+
     ; variaveis da bola
     bola_raio equ 10
     bola_posicao_x dw 320
@@ -737,6 +860,36 @@ segment data
     raquete_direita_posicao_y dw 240
 
     raquete_direita_velocidade_y dw 0001h
+
+    ; variavel de estado dos controles:
+    ;
+    ; Bit 0 - Jogador 1 cima
+    ; Bit 1 - Jogador 1 baixo
+    ; Bit 2 - Jogador 2 cima
+    ; Bit 3 - jogador 2 baixo
+
+    status_controles db 0
+
+    ; CONSTANTES
+
+    P1_CIMA  EQU 00000001b
+    P1_BAIXO EQU 00000010b
+    P2_CIMA  EQU 00000100b
+    P2_BAIXO EQU 00001000b
+
+    CIMA_APERTADO  EQU 0x48
+    CIMA_SOLTO     EQU 0xC8
+    BAIXO_APERTADO EQU 0x50
+    BAIXO_SOLTO    EQU 0XD0
+
+    W_APERTADO EQU 0x11
+    W_SOLTO    EQU 0x91
+    S_APERTADO EQU 0x1F
+    S_SOLTO    EQU 0x9F
+
+    Y_SOLTO EQU 0x95
+    N_SOLTO EQU 0xB1
+    Q_SOLTO EQU 0x90
 
     global tecla
     tecla db 0
