@@ -29,7 +29,6 @@ segment code
     CALL desenhar_bordas
     CALL desenhar_bola
     CALL desenhar_blocos
-    CALL desenhar_raquetes
 
     main_loop:
     CALL verifica_sair
@@ -110,7 +109,7 @@ segment code
         CMP AL, W_SOLTO
         JNE _atualiza_status_controles_2
         MOV AH, P1_CIMA
-        NEG AH
+        NOT AH
         AND [status_controles], AH
         _atualiza_status_controles_2:
 
@@ -122,7 +121,7 @@ segment code
         CMP AL, S_SOLTO
         JNE _atualiza_status_controles_4
         MOV AH, P1_BAIXO
-        NEG AH
+        NOT AH
         AND [status_controles], AH
         _atualiza_status_controles_4:
 
@@ -134,7 +133,7 @@ segment code
         CMP AL, CIMA_SOLTO
         JNE _atualiza_status_controles_6
         MOV AH, P2_CIMA
-        NEG AH
+        NOT AH
         AND [status_controles], AH
         _atualiza_status_controles_6:
 
@@ -146,7 +145,7 @@ segment code
         CMP AL, BAIXO_SOLTO
         JNE _atualiza_status_controles_8
         MOV AH, P2_BAIXO
-        NEG AH
+        NOT AH
         AND [status_controles], AH
         _atualiza_status_controles_8:
 
@@ -165,16 +164,30 @@ segment code
         MOV AL, [status_controles]
         AND AL, CONTROLES_P1
         CMP AL, P1_CIMA
-        JZ _executa_controles_P1_1
-        MOV WORD [raquete_esquerda_velocidade_y], -5
+        JNE _executa_controles_P1_1
+        MOV AX, raquete_h_metade
+        ADD AX, [raquete_esquerda_posicao_y]
+        ADD AX, 5
+        CMP AX, 479
+        JAE _executa_controles_P1_2
+        MOV WORD [raquete_esquerda_velocidade_y], 5
         JMP _executa_controles_P1_fim
 
         _executa_controles_P1_1:
         MOV AL, [status_controles]
         AND AL, CONTROLES_P1
         CMP AL, P1_BAIXO
-        JZ _executa_controles_P1_fim
-        MOV WORD [raquete_esquerda_velocidade_y], 5
+        JNE _executa_controles_P1_2
+        MOV AX, [raquete_esquerda_posicao_y]
+        SUB AX, raquete_h_metade
+        SUB AX, 20
+        CMP AX, 0
+        JLE _executa_controles_P1_2
+        MOV WORD [raquete_esquerda_velocidade_y], -5
+        JMP _executa_controles_P1_fim
+
+        _executa_controles_P1_2:
+        MOV WORD [raquete_esquerda_velocidade_y], 0
 
         _executa_controles_P1_fim:
         POP AX
@@ -186,16 +199,30 @@ segment code
         MOV AL, [status_controles]
         AND AL, CONTROLES_P2
         CMP AL, P2_CIMA
-        JZ _executa_controles_P2_1
-        MOV WORD [raquete_direita_velocidade_y], -5
+        JNE _executa_controles_P2_1
+        MOV AX, raquete_h_metade
+        ADD AX, [raquete_direita_posicao_y]
+        ADD AX, 5
+        CMP AX, 479
+        JAE _executa_controles_P2_2
+        MOV WORD [raquete_direita_velocidade_y], 5
         JMP _executa_controles_P2_fim
 
         _executa_controles_P2_1:
         MOV AL, [status_controles]
         AND AL, CONTROLES_P2
         CMP AL, P2_BAIXO
-        JZ _executa_controles_P2_fim
-        MOV WORD [raquete_direita_velocidade_y], 5
+        JNE _executa_controles_P2_2
+        MOV AX, [raquete_direita_posicao_y]
+        SUB AX, raquete_h_metade
+        SUB AX, 20
+        CMP AX, 0
+        JLE _executa_controles_P2_2
+        MOV WORD [raquete_direita_velocidade_y], -5
+        JMP _executa_controles_P2_fim
+
+        _executa_controles_P2_2:
+        MOV WORD [raquete_direita_velocidade_y], 0
 
         _executa_controles_P2_fim:
         POP AX
@@ -213,6 +240,10 @@ segment code
         MOV     BYTE AL, vermelho
         PUSH AX
         CALL desenhar_bola
+        CALL limpar_raquetes
+        CALL move_raquetes
+        CALL desenhar_raquetes
+
         POP AX
         RET
 
@@ -784,6 +815,46 @@ segment code
 
         POP AX
         RET
+
+    move_raquetes:
+        MOV AX, [raquete_esquerda_posicao_y]
+        ADD AX, [raquete_esquerda_velocidade_y]
+        MOV [raquete_esquerda_posicao_y], AX
+
+        MOV AX, [raquete_direita_posicao_y]
+        ADD AX, [raquete_direita_velocidade_y]
+        MOV [raquete_direita_posicao_y], AX
+
+        RET
+
+    limpar_raquetes:
+        PUSH AX
+
+        MOV BYTE [cor], preto
+        MOV AX, [raquete_esquerda_posicao_x]
+        PUSH AX
+        MOV AX, [raquete_esquerda_posicao_y]
+        PUSH AX
+        MOV AX, raquete_w
+        PUSH AX
+        MOV AX, raquete_h
+        PUSH AX
+        call fblock
+
+        MOV BYTE [cor], preto
+        MOV AX, [raquete_direita_posicao_x]
+        PUSH AX
+        MOV AX, [raquete_direita_posicao_y]
+        PUSH AX
+        MOV AX, raquete_w
+        PUSH AX
+        MOV AX, raquete_h
+        PUSH AX
+        call fblock
+
+        POP AX
+
+        RET
     
     desenhar_raquetes:
         PUSH AX
@@ -1035,18 +1106,19 @@ segment data
 
     raquete_w equ 10
     raquete_h equ 40
+    raquete_h_metade equ 20
 
     ; variaveis da raquete esquerda
     raquete_esquerda_posicao_x dw 50
     raquete_esquerda_posicao_y dw 240
 
-    raquete_esquerda_velocidade_y dw 0001h
+    raquete_esquerda_velocidade_y dw 0000h
     
     ; variaveis da raquete direita
     raquete_direita_posicao_x dw 590
     raquete_direita_posicao_y dw 240
 
-    raquete_direita_velocidade_y dw 0001h
+    raquete_direita_velocidade_y dw 0000h
 
     ; variavel de estado dos controles:
     ;
