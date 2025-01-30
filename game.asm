@@ -154,8 +154,50 @@ segment code
         RET
 
     executa_controles:
+        CALL executa_controles_P1
+        CALL executa_controles_P2
+
+        RET
+
+    executa_controles_P1:
         PUSH AX
 
+        MOV AL, [status_controles]
+        AND AL, CONTROLES_P1
+        CMP AL, P1_CIMA
+        JZ _executa_controles_P1_1
+        MOV WORD [raquete_esquerda_velocidade_y], -5
+        JMP _executa_controles_P1_fim
+
+        _executa_controles_P1_1:
+        MOV AL, [status_controles]
+        AND AL, CONTROLES_P1
+        CMP AL, P1_BAIXO
+        JZ _executa_controles_P1_fim
+        MOV WORD [raquete_esquerda_velocidade_y], 5
+
+        _executa_controles_P1_fim:
+        POP AX
+        RET
+
+    executa_controles_P2:
+        PUSH AX
+
+        MOV AL, [status_controles]
+        AND AL, CONTROLES_P2
+        CMP AL, P2_CIMA
+        JZ _executa_controles_P2_1
+        MOV WORD [raquete_direita_velocidade_y], -5
+        JMP _executa_controles_P2_fim
+
+        _executa_controles_P2_1:
+        MOV AL, [status_controles]
+        AND AL, CONTROLES_P2
+        CMP AL, P2_BAIXO
+        JZ _executa_controles_P2_fim
+        MOV WORD [raquete_direita_velocidade_y], 5
+
+        _executa_controles_P2_fim:
         POP AX
         RET
     
@@ -1017,6 +1059,8 @@ segment data
 
     ; CONSTANTES
 
+    CONTROLES_P1 EQU 00000011b
+    CONTROLES_P2 EQU 00001100b
     P1_CIMA  EQU 00000001b
     P1_BAIXO EQU 00000010b
     P2_CIMA  EQU 00000100b
