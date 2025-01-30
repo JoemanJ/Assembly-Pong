@@ -29,8 +29,7 @@ segment code
     CALL desenhar_bordas
     CALL desenhar_bola
     CALL desenhar_blocos
-
-    ;TODO: CALL desenhar_raquetes
+    CALL desenhar_raquetes
 
     main_loop:
     CALL verifica_sair
@@ -180,6 +179,8 @@ segment code
         CALL quica_bola_parede_baixo
         CALL quica_bola_bloco_direito
         CALL quica_bola_bloco_esquerdo
+        CALL quica_bola_raquete_direita
+        CALL quica_bola_raquete_esquerda
         RET
         
     quica_bola_parede_cima:
@@ -212,12 +213,98 @@ segment code
         POP AX
         RET
 
+    quica_bola_raquete_direita:
+        PUSH AX
+        
+        MOV AX, [raquete_direita_posicao_x]
+        SUB AX, raquete_w
+        SUB AX, bola_raio
+
+        CMP AX, [bola_posicao_x]
+        JAE quica_bola_raquete_direita_fim
+
+        MOV AX, [raquete_direita_posicao_x]
+        ADD AX, raquete_w
+        SUB AX, bola_raio
+
+        CMP AX, [bola_posicao_x]
+
+        JB quica_bola_raquete_direita_fim
+
+        MOV AX, [bola_posicao_y]
+        SUB AX, raquete_h
+        CMP AX, [raquete_direita_posicao_y]
+
+        JA quica_bola_raquete_direita_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, raquete_h
+        CMP AX, [raquete_direita_posicao_y]
+
+        JB quica_bola_raquete_direita_fim
+
+        CALL desenhar_raquetes
+
+        MOV AX, [bola_velocidade_x]
+        CMP AX, 0
+        JB quica_bola_raquete_direita_fim
+
+        NEG WORD [bola_velocidade_x]
+
+        quica_bola_raquete_direita_fim:
+        
+        POP AX
+        RET
+
+    quica_bola_raquete_esquerda:
+        PUSH AX
+        
+        MOV AX, [raquete_esquerda_posicao_x]
+        ADD AX, raquete_w
+        ADD AX, bola_raio
+
+        CMP AX, [bola_posicao_x]
+        JBE quica_bola_raquete_esquerda_fim
+
+        MOV AX, [raquete_esquerda_posicao_x]
+        SUB AX, raquete_w
+        ADD AX, bola_raio
+
+        CMP AX, [bola_posicao_x]
+
+        JA quica_bola_raquete_esquerda_fim
+
+        MOV AX, [bola_posicao_y]
+        SUB AX, raquete_h
+        CMP AX, [raquete_esquerda_posicao_y]
+
+        JA quica_bola_raquete_esquerda_fim
+
+        MOV AX, [bola_posicao_y]
+        ADD AX, raquete_h
+        CMP AX, [raquete_esquerda_posicao_y]
+
+        JB quica_bola_raquete_esquerda_fim
+
+        CALL desenhar_raquetes
+
+        MOV AX, [bola_velocidade_x]
+        CMP AX, 0
+        JA quica_bola_raquete_esquerda_fim
+
+        NEG WORD [bola_velocidade_x]
+
+        quica_bola_raquete_esquerda_fim:
+        
+        POP AX
+        RET
+
     quica_bola_bloco_direito:
         PUSH AX
         PUSHf
 
         MOV AX, [bloco_1_dir_x]
-        SUB AX, [bloco_w]
+        SUB AX, bloco_w
         SUB AX, bola_raio
 
         CMP AX, [bola_posicao_x] 
@@ -227,13 +314,24 @@ segment code
 
         possivel_colisao_bloco_direito:
 
+        MOV AX, [bloco_1_dir_x]
+        ADD AX, bloco_w
+        SUB AX, bola_raio
+
+        CMP AX, [bola_posicao_x]
+        JA dentro_faixa_x_bloco_direito
+
+        JMP quica_bola_bloco_direito_fim
+
+        dentro_faixa_x_bloco_direito:
+
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 1 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_1_dir_y]
         JA bloco_1_dir_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_1_dir_y]
         JB bloco_1_dir_fim
 
@@ -249,9 +347,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_1_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -261,12 +359,12 @@ segment code
         bloco_1_dir_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 2 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_2_dir_y]
         JA bloco_2_dir_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_2_dir_y]
         JB bloco_2_dir_fim
 
@@ -282,9 +380,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_2_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -294,12 +392,12 @@ segment code
         bloco_2_dir_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 3 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_3_dir_y]
         JA bloco_3_dir_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_3_dir_y]
         JB bloco_3_dir_fim
 
@@ -315,9 +413,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_3_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -327,12 +425,12 @@ segment code
         bloco_3_dir_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 4 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_4_dir_y]
         JA bloco_4_dir_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_4_dir_y]
         JB bloco_4_dir_fim
 
@@ -348,9 +446,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_4_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -360,12 +458,12 @@ segment code
         bloco_4_dir_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 5 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_5_dir_y]
         JA bloco_5_dir_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_5_dir_y]
         JB bloco_5_dir_fim
 
@@ -381,9 +479,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_5_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -404,23 +502,36 @@ segment code
         PUSHf
 
         MOV AX, [bloco_1_esq_x]
-        ADD AX, [bloco_w]
+        ADD AX, bloco_w
         ADD AX, bola_raio
 
-        CMP AX, [bola_posicao_x] 
+        CMP AX, [bola_posicao_x]
+
         JA possivel_colisao_bloco_esquerdo ; verifica se a posicao x da bola para determinar colisoes
-        
+
         JMP quica_bola_bloco_esquerdo_fim   ; tive que fazer essa gambiarra porque tava fora do range do JBE
 
         possivel_colisao_bloco_esquerdo:
 
+        MOV AX, [bloco_1_esq_x]
+        SUB AX, bloco_w
+        ADD AX, bola_raio
+
+        CMP AX, [bola_posicao_x]
+
+        JB dentro_faixa_x_bloco_esquerdo
+
+        JMP quica_bola_bloco_esquerdo_fim
+
+        dentro_faixa_x_bloco_esquerdo:
+
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 1 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_1_esq_y]
         JA bloco_1_esq_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_1_esq_y]
         JB bloco_1_esq_fim
 
@@ -436,9 +547,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_1_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -448,12 +559,12 @@ segment code
         bloco_1_esq_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 2 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_2_esq_y]
         JA bloco_2_esq_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_2_esq_y]
         JB bloco_2_esq_fim
 
@@ -469,9 +580,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_2_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -481,12 +592,12 @@ segment code
         bloco_2_esq_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 3 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_3_esq_y]
         JA bloco_3_esq_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_3_esq_y]
         JB bloco_3_esq_fim
 
@@ -502,9 +613,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_3_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -514,12 +625,12 @@ segment code
         bloco_3_esq_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 4 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_4_esq_y]
         JA bloco_4_esq_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_4_esq_y]
         JB bloco_4_esq_fim
 
@@ -535,9 +646,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_4_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -547,12 +658,12 @@ segment code
         bloco_4_esq_fim:
 
         MOV AX, [bola_posicao_y]          ; verifica se a bola esta dentro do alcance do bloco 5 esquerdo
-        SUB AX, [bloco_h]
+        SUB AX, bloco_h
         CMP AX, [bloco_5_esq_y]
         JA bloco_5_esq_fim
 
         MOV AX, [bola_posicao_y]
-        ADD AX, [bloco_h]
+        ADD AX, bloco_h
         CMP AX, [bloco_5_esq_y]
         JB bloco_5_esq_fim
 
@@ -568,9 +679,9 @@ segment code
         PUSH AX
         MOV AX,[bloco_5_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -632,116 +743,145 @@ segment code
         POP AX
         RET
     
-    desenhar_blocos:
+    desenhar_raquetes:
         PUSH AX
 
         MOV BYTE [cor], cyan_claro
+        MOV AX, [raquete_esquerda_posicao_x]
+        PUSH AX
+        MOV AX, [raquete_esquerda_posicao_y]
+        PUSH AX
+        MOV AX, raquete_w
+        PUSH AX
+        MOV AX, raquete_h
+        PUSH AX
+        call fblock
+
+        MOV BYTE [cor], cyan_claro
+        MOV AX, [raquete_direita_posicao_x]
+        PUSH AX
+        MOV AX, [raquete_direita_posicao_y]
+        PUSH AX
+        MOV AX, raquete_w
+        PUSH AX
+        MOV AX, raquete_h
+        PUSH AX
+        call fblock
+
+        POP AX
+
+        RET
+
+    desenhar_blocos:
+        PUSH AX
+
+        MOV BYTE [cor], rosa
         MOV AX,[bloco_1_esq_x]
         PUSH AX
         MOV AX,[bloco_1_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], magenta_claro
         MOV AX,[bloco_2_esq_x]
         PUSH AX
         MOV AX,[bloco_2_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], magenta
         MOV AX,[bloco_3_esq_x]
         PUSH AX
         MOV AX,[bloco_3_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], vermelho
         MOV AX,[bloco_4_esq_x]
         PUSH AX
         MOV AX,[bloco_4_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], amarelo
         MOV AX,[bloco_5_esq_x]
         PUSH AX
         MOV AX,[bloco_5_esq_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], rosa
         MOV AX,[bloco_1_dir_x]
         PUSH AX
         MOV AX,[bloco_1_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], magenta_claro
         MOV AX,[bloco_2_dir_x]
         PUSH AX
         MOV AX,[bloco_2_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], magenta
         MOV AX,[bloco_3_dir_x]
         PUSH AX
         MOV AX,[bloco_3_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], vermelho
         MOV AX,[bloco_4_dir_x]
         PUSH AX
         MOV AX,[bloco_4_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
-        MOV BYTE [cor], cyan_claro
+        MOV BYTE [cor], amarelo
         MOV AX,[bloco_5_dir_x]
         PUSH AX
         MOV AX,[bloco_5_dir_y]
         PUSH AX
-        MOV AX,[bloco_w]
+        MOV AX,bloco_w
         PUSH AX
-        MOV AX,[bloco_h]
+        MOV AX,bloco_h
         PUSH AX
         CALL fblock
 
@@ -754,7 +894,7 @@ segment code
         MOV	 	BP,SP                   
         PUSH 	AX
         
-        MOV		AX,[BP+4]    			;resgata a cor
+        MOV		AX,[BP+4]    			; resgata a cor
 
         MOV BYTE [cor], AL
 
@@ -805,8 +945,8 @@ segment data
     bola_velocidade_y dw 0001h
 
     ; variaveis de blocos
-    bloco_w         dw  7
-    bloco_h         dw  40
+    bloco_w         equ     7
+    bloco_h         equ     40
 
     bloco_1_esq_x   dw  20
     bloco_1_esq_y   dw  48
@@ -849,14 +989,19 @@ segment data
     bloco_5_dir_ativo db 1
 
 
+    ; dimensoes das raquetes
+
+    raquete_w equ 10
+    raquete_h equ 40
+
     ; variaveis da raquete esquerda
-    raquete_esquerda_posicao_x dw 10
+    raquete_esquerda_posicao_x dw 50
     raquete_esquerda_posicao_y dw 240
 
     raquete_esquerda_velocidade_y dw 0001h
     
     ; variaveis da raquete direita
-    raquete_direita_posicao_x dw 630
+    raquete_direita_posicao_x dw 590
     raquete_direita_posicao_y dw 240
 
     raquete_direita_velocidade_y dw 0001h
