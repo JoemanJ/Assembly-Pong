@@ -26,9 +26,52 @@ segment code
     CALL salvar_modo_grafico
     CALL iniciar_modo_grafico_VGA
 
+    MOV BYTE [tecla], 0 ;Porque ao abrir o programa enter e solto...
+
     CALL desenhar_bordas
-    CALL desenhar_bola
     CALL desenhar_blocos
+
+    loop_menu:
+        CALL escreve_dificuldade_facil
+        CALL escreve_dificuldade_medio
+        CALL escreve_dificuldade_dificil
+        
+        MOV AL, [tecla]
+        MOV BYTE [tecla], 0
+        
+        CMP AL, BAIXO_SOLTO
+        JE aumenta_dificuldade
+
+        CMP AL, CIMA_SOLTO
+        JE diminui_dificuldade
+
+        CMP AL, ENTER_APERTADO
+        JE comeca_jogo
+
+        JMP loop_menu
+
+        aumenta_dificuldade:
+        INC BYTE [dificuldade_selecionada]
+        CMP BYTE [dificuldade_selecionada], 3
+        JNE _aumenta_dificuldade_fim
+        MOV BYTE [dificuldade_selecionada], 0
+        _aumenta_dificuldade_fim:
+        JMP loop_menu
+
+        diminui_dificuldade:
+        DEC BYTE [dificuldade_selecionada]
+        CMP BYTE [dificuldade_selecionada], -1
+        JNE _diminui_dificuldade_fim
+        MOV BYTE [dificuldade_selecionada], 2
+        _diminui_dificuldade_fim:
+        JMP loop_menu
+
+    comeca_jogo:
+
+    CALL limpa_dificuldades
+    CALL define_velocidade_bola
+
+    CALL desenhar_bola
 
     main_loop:
     CALL verifica_sair
@@ -41,6 +84,185 @@ segment code
     fim:
     CALL restaurar_modo_grafico
     CALL encerrar_programa
+
+    escreve_dificuldade_facil:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+
+        MOV DH, 18
+        MOV DL, 37
+
+        CMP BYTE [dificuldade_selecionada], 0
+        JNE _escreve_dificuldade_facil_1
+        MOV BYTE [cor], verde
+        JMP _escreve_dificuldade_facil_2
+        _escreve_dificuldade_facil_1:
+        MOV BYTE [cor], branco_intenso
+
+        _escreve_dificuldade_facil_2:
+        MOV CX, 5
+        MOV BX, facil
+
+        _escreve_dificuldade_facil_loop:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _escreve_dificuldade_facil_loop
+
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+
+        RET
+
+    escreve_dificuldade_medio:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+
+        MOV DH, 20
+        MOV DL, 37
+
+        CMP BYTE [dificuldade_selecionada], 1
+        JNE _escreve_dificuldade_medio_1
+        MOV BYTE [cor], amarelo
+        JMP _escreve_dificuldade_medio_2
+        _escreve_dificuldade_medio_1:
+        MOV BYTE [cor], branco_intenso
+
+        _escreve_dificuldade_medio_2:
+        MOV CX, 5
+        MOV BX, medio
+
+        _escreve_dificuldade_medio_loop:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _escreve_dificuldade_medio_loop
+
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+
+        RET
+
+    escreve_dificuldade_dificil:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+
+        MOV DH, 22
+        MOV DL, 37
+
+        CMP BYTE [dificuldade_selecionada], 2
+        JNE _escreve_dificuldade_dificil_1
+        MOV BYTE [cor], vermelho
+        JMP _escreve_dificuldade_dificil_2
+        _escreve_dificuldade_dificil_1:
+        MOV BYTE [cor], branco_intenso
+
+        _escreve_dificuldade_dificil_2:
+        MOV CX, 7
+        MOV BX, dificil
+
+        _escreve_dificuldade_dificil_loop:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _escreve_dificuldade_dificil_loop
+
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+
+        RET
+
+    limpa_dificuldades:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+
+        MOV BYTE [cor], preto
+
+        MOV DH, 18
+        MOV DL, 37
+
+
+        MOV CX, 5
+        MOV BX, facil
+
+        _limpa_dificuldades_loop_1:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _limpa_dificuldades_loop_1
+
+
+        MOV DH, 20
+        MOV DL, 37
+
+        MOV CX, 5
+        MOV BX, medio
+
+        _limpa_dificuldades_loop_2:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _limpa_dificuldades_loop_2
+
+        MOV DH, 22
+        MOV DL, 37
+
+        MOV CX, 7
+        MOV BX, dificil
+
+        _limpa_dificuldades_loop_3:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _limpa_dificuldades_loop_3
+
+
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+
+        RET
+
+    define_velocidade_bola:
+        PUSH AX
+
+        MOV AX, [bola_velocidade_x]
+        MUL BYTE [dificuldade_selecionada]
+        MOV [bola_velocidade_x], AX
+
+        MOV AX, [bola_velocidade_y]
+        MUL BYTE [dificuldade_selecionada]
+        MOV [bola_velocidade_y], AX
+
+        POP AX
+        RET
 
     verifica_sair:
         PUSH AX
@@ -1046,6 +1268,13 @@ segment data
     amarelo			equ		14	; 1 1 1 0 amarelo
     branco_intenso	equ		15	; 1 1 1 1 branco INTenso
     
+    ; dados do menu de dificuldade
+    facil db 'facil'
+    medio db 'medio'
+    dificil db 'dificil'
+
+    dificuldade_selecionada db 0
+
     ; mensagem de sair do jogo
     mensagem_sair db 'sair? [y]es [n]o'
 
@@ -1151,6 +1380,7 @@ segment data
     Y_SOLTO EQU 0x95
     N_SOLTO EQU 0xB1
     Q_SOLTO EQU 0x90
+    ENTER_APERTADO EQU 0x1C
 
     global tecla
     tecla db 0
