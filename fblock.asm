@@ -1,5 +1,6 @@
 segment code
 extern plot_xy
+extern line
 ;-----------------------------------------------------------------------------
 ;função bloco
 ; Parametros:
@@ -27,37 +28,120 @@ fblock:
     ; Desenhando o bloco usando a funcao de fblock
 
     ; marcando os pontos x1,y1,x2,y2 a partir do centro e dos valores de w e h
-    MOV     AX,[xcenter]
-    SUB     AX,CX
-    MOV     [x1coord],AX    ;salvando x1 para recuperar mais tarde
+;    MOV     AX,[xcenter]
+;    SUB     AX,CX
+;    MOV     [x1coord],AX    ;salvando x1 para recuperar mais tarde
 
-    MOV     AX,[ycenter]
-    SUB     AX,DX
-    MOV     BX,AX           ; BX recebe y1
+;    MOV     AX,[ycenter]
+;    SUB     AX,DX
+;    MOV     BX,AX           ; BX recebe y1
     
-    MOV     AX,[xcenter]
-    ADD     AX,CX
-    MOV     CX,AX           ; CX recebe x2
+;    MOV     AX,[xcenter]
+;    ADD     AX,CX
+;    MOV     CX,AX           ; CX recebe x2
 
-    MOV     AX,[ycenter]
-    ADD     AX,DX
-    MOV     DX,AX           ; DX recebe y2
+;    MOV     AX,[ycenter]
+;    ADD     AX,DX
+;    MOV     DX,AX           ; DX recebe y2
 
-    MOV     AX,[x1coord]    ; AX recupera valor de x1
+;    MOV     AX,[x1coord]    ; AX recupera valor de x1
 
-lup:
-    PUSH AX
-    PUSH BX
-    CALL plot_xy            ; requisicao para pintar esse pixel
+;lup:
+;    PUSH AX
+;    PUSH BX
+;    CALL plot_xy            ; requisicao para pintar esse pixel
 
-    INC AX                  ; aumenta a posicao de x1 ate chegar em x2
-    CMP AX,CX
-    JB lup                  ; enquanto x1 nao chegar em x2, nao passa daqui
-    MOV AX,[x1coord]        ; quando x1 chegar em x2, reseta o valor de x1 pro valor original
-    INC BX                  ; aumenta o valor de y1 ate chegar em y2
-    CMP BX,DX               
-    JB lup                  ; enquanto y1 nao chegar em y2, nao passa daqui
+;    INC AX                  ; aumenta a posicao de x1 ate chegar em x2
+;    CMP AX,CX
+;    JB lup                  ; enquanto x1 nao chegar em x2, nao passa daqui
+;    MOV AX,[x1coord]        ; quando x1 chegar em x2, reseta o valor de x1 pro valor original
+;    INC BX                  ; aumenta o valor de y1 ate chegar em y2
+;    CMP BX,DX               
+;    JB lup                  ; enquanto y1 nao chegar em y2, nao passa daqui
                             ; quando passar, todos os pixels do quadrado foram pintados
+
+    ;Linha cima
+    MOV AX, [xcenter]
+    SUB AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    ADD AX, DX
+    PUSH AX
+
+    MOV AX, [xcenter]
+    ADD AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    ADD AX, DX
+    PUSH AX
+
+    CALL line
+
+
+
+    ;Linha direita
+    MOV AX, [xcenter]
+    ADD AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    ADD AX, DX
+    PUSH AX
+
+    MOV AX, [xcenter]
+    ADD AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    SUB AX, DX
+    PUSH AX
+
+    CALL line
+
+
+
+    ;Linha baixo
+    MOV AX, [xcenter]
+    ADD AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    SUB AX, DX
+    PUSH AX
+
+    MOV AX, [xcenter]
+    SUB AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    SUB AX, DX
+    PUSH AX
+
+    CALL line
+
+
+
+    ;Linha esquerda
+    MOV AX, [xcenter]
+    SUB AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    SUB AX, DX
+    PUSH AX
+
+    MOV AX, [xcenter]
+    SUB AX, CX
+    PUSH AX
+
+    MOV AX, [ycenter]
+    ADD AX, DX
+    PUSH AX
+
+    CALL line
+
 
     POP		DX
     POP		CX

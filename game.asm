@@ -402,7 +402,7 @@ segment code
         AND AL, CONTROLES_P1
         CMP AL, P1_CIMA
         JNE _executa_controles_P1_1
-        MOV AX, raquete_h_metade
+        MOV AX, raquete_h
         ADD AX, [raquete_esquerda_posicao_y]
         ADD AX, 5
         CMP AX, 479
@@ -416,8 +416,8 @@ segment code
         CMP AL, P1_BAIXO
         JNE _executa_controles_P1_2
         MOV AX, [raquete_esquerda_posicao_y]
-        SUB AX, raquete_h_metade
-        SUB AX, 20
+        SUB AX, raquete_h
+        SUB AX, 5
         CMP AX, 0
         JLE _executa_controles_P1_2
         MOV WORD [raquete_esquerda_velocidade_y], -5
@@ -437,7 +437,7 @@ segment code
         AND AL, CONTROLES_P2
         CMP AL, P2_CIMA
         JNE _executa_controles_P2_1
-        MOV AX, raquete_h_metade
+        MOV AX, raquete_h
         ADD AX, [raquete_direita_posicao_y]
         ADD AX, 5
         CMP AX, 479
@@ -451,8 +451,8 @@ segment code
         CMP AL, P2_BAIXO
         JNE _executa_controles_P2_2
         MOV AX, [raquete_direita_posicao_y]
-        SUB AX, raquete_h_metade
-        SUB AX, 20
+        SUB AX, raquete_h
+        SUB AX, 5
         CMP AX, 0
         JLE _executa_controles_P2_2
         MOV WORD [raquete_direita_velocidade_y], -5
@@ -1350,7 +1350,6 @@ segment data
 
     raquete_w equ 10
     raquete_h equ 40
-    raquete_h_metade equ 20
 
     ; variaveis da raquete esquerda
     raquete_esquerda_posicao_x dw 50
