@@ -34,9 +34,9 @@ segment code
         CLI
         XOR AX, AX
         MOV ES, AX
-        MOV AX, IP_INT9_DOS
+        MOV AX, [IP_INT9_DOS]
         MOV [ES:9h*4], AX
-        MOV AX, CS_INT9_DOS
+        MOV AX, [CS_INT9_DOS]
         MOV [ES:9h*4+2], AX
         STI
 
@@ -68,7 +68,7 @@ segment code
 
     salvar_modo_grafico:
         PUSH AX
-        MOV AX, 0Fh
+        MOV AH, 0Fh
         INT 10h
         MOV [modo_grafico_anterior], AL
         POP AX
@@ -83,8 +83,8 @@ segment code
 
     restaurar_modo_grafico:
         PUSH AX
-        MOV AH, 0
         MOV AL, [modo_grafico_anterior]
+        MOV AH, 0Fh
         INT 10h
         POP AX
         RET
