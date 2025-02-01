@@ -282,7 +282,7 @@ segment code
         PUSH CX
         PUSH DX
 
-        _loop_sair_1
+        _loop_sair_1:
 
         MOV BYTE [cor], vermelho
         MOV BX, mensagem_sair
@@ -308,10 +308,25 @@ segment code
 
         CMP AL, N_SOLTO
         JE _loop_sair_fim
-
         JMP _loop_sair_1
 
-        _loop_sair_fim
+        _loop_sair_fim:
+        MOV BYTE [cor], preto
+        MOV BX, mensagem_sair
+        MOV CX, 16
+        MOV DH, 20
+        MOV DL, 32
+        
+        _loop_sair_limpar_proximo_caracter:
+        CALL cursor
+
+        MOV AL, [BX]
+        CALL caracter
+
+        INC DL
+        INC BX
+        LOOP _loop_sair_limpar_proximo_caracter
+
         POP DX
         POP CX
         POP BX
