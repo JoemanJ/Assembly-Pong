@@ -90,6 +90,7 @@ segment code
         PUSH BX
         PUSH CX
         PUSH DX
+        PUSHF
 
         MOV DH, 18
         MOV DL, 37
@@ -113,6 +114,7 @@ segment code
         INC DL
         LOOP _escreve_dificuldade_facil_loop
 
+        POPF
         POP DX
         POP CX
         POP BX
@@ -125,6 +127,7 @@ segment code
         PUSH BX
         PUSH CX
         PUSH DX
+        PUSHF
 
         MOV DH, 20
         MOV DL, 37
@@ -148,6 +151,7 @@ segment code
         INC DL
         LOOP _escreve_dificuldade_medio_loop
 
+        POPF
         POP DX
         POP CX
         POP BX
@@ -160,6 +164,7 @@ segment code
         PUSH BX
         PUSH CX
         PUSH DX
+        PUSHF
 
         MOV DH, 22
         MOV DL, 37
@@ -183,6 +188,7 @@ segment code
         INC DL
         LOOP _escreve_dificuldade_dificil_loop
 
+        POPF
         POP DX
         POP CX
         POP BX
@@ -195,6 +201,7 @@ segment code
         PUSH BX
         PUSH CX
         PUSH DX
+        PUSHF
 
         MOV BYTE [cor], preto
 
@@ -242,7 +249,7 @@ segment code
         INC DL
         LOOP _limpa_dificuldades_loop_3
 
-
+        POPF
         POP DX
         POP CX
         POP BX
@@ -252,6 +259,7 @@ segment code
 
     define_velocidade_bola:
         PUSH AX
+        PUSHF
 
         MOV AX, [bola_velocidade_x]
         MUL BYTE [dificuldade_selecionada]
@@ -261,11 +269,13 @@ segment code
         MUL BYTE [dificuldade_selecionada]
         MOV [bola_velocidade_y], AX
 
+        POPF
         POP AX
         RET
 
     verifica_sair:
         PUSH AX
+        PUSHF
 
         MOV AL, [tecla]
         CMP AL, Q_SOLTO
@@ -273,6 +283,7 @@ segment code
         CALL loop_sair
 
         _verifica_sair_1:
+        POPF
         POP AX
         RET
 
@@ -281,6 +292,7 @@ segment code
         PUSH BX
         PUSH CX
         PUSH DX
+        PUSHF
 
         _loop_sair_1:
 
@@ -327,6 +339,7 @@ segment code
         INC BX
         LOOP _loop_sair_limpar_proximo_caracter
 
+        POPF
         POP DX
         POP CX
         POP BX
@@ -335,6 +348,7 @@ segment code
 
     atualiza_status_controles:
         PUSH AX
+        PUSHF
 
         MOV AL, [tecla]
 
@@ -386,6 +400,7 @@ segment code
         AND [status_controles], AH
         _atualiza_status_controles_8:
 
+        POPF
         POP AX
         RET
 
@@ -397,6 +412,7 @@ segment code
 
     executa_controles_P1:
         PUSH AX
+        PUSHF
 
         MOV AL, [status_controles]
         AND AL, CONTROLES_P1
@@ -427,11 +443,13 @@ segment code
         MOV WORD [raquete_esquerda_velocidade_y], 0
 
         _executa_controles_P1_fim:
+        POPF
         POP AX
         RET
 
     executa_controles_P2:
         PUSH AX
+        PUSHF
 
         MOV AL, [status_controles]
         AND AL, CONTROLES_P2
@@ -462,11 +480,13 @@ segment code
         MOV WORD [raquete_direita_velocidade_y], 0
 
         _executa_controles_P2_fim:
+        POPF
         POP AX
         RET
     
     proximo_frame:
         PUSH AX
+
         CALL quica_bola
 
         MOV     BYTE AL, preto
@@ -525,6 +545,7 @@ segment code
 
     quica_bola_raquete_direita:
         PUSH AX
+        PUSHF
         
         MOV AX, [raquete_direita_posicao_x]
         SUB AX, raquete_w
@@ -563,11 +584,13 @@ segment code
 
         quica_bola_raquete_direita_fim:
         
+        POPF
         POP AX
         RET
 
     quica_bola_raquete_esquerda:
         PUSH AX
+        PUSHF
         
         MOV AX, [raquete_esquerda_posicao_x]
         ADD AX, raquete_w
@@ -606,6 +629,7 @@ segment code
 
         quica_bola_raquete_esquerda_fim:
         
+        POPF
         POP AX
         RET
 
@@ -1009,6 +1033,7 @@ segment code
 
     move_bola:
         PUSH AX
+        PUSHF
 
         MOV AX, [bola_posicao_x]
         ADD AX, [bola_velocidade_x]
@@ -1018,6 +1043,7 @@ segment code
         ADD AX, [bola_velocidade_y]
         MOV [bola_posicao_y], AX
 
+        POPF
         POP AX
         RET
 
@@ -1054,6 +1080,9 @@ segment code
         RET
 
     move_raquetes:
+        PUSH AX
+        PUSHF
+
         MOV AX, [raquete_esquerda_posicao_y]
         ADD AX, [raquete_esquerda_velocidade_y]
         MOV [raquete_esquerda_posicao_y], AX
@@ -1062,6 +1091,8 @@ segment code
         ADD AX, [raquete_direita_velocidade_y]
         MOV [raquete_direita_posicao_y], AX
 
+        POPF
+        POP AX
         RET
 
     limpar_raquetes:

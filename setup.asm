@@ -10,6 +10,7 @@ segment code
 
     preparar_int9:
         PUSH AX
+        PUSHF
 
         CLI
         XOR AX, AX
@@ -22,11 +23,13 @@ segment code
         MOV [ES:9h*4+2], CS
         STI
 
+        POPF
         POP AX
         RET
 
     restaurar_int9:
         PUSH AX
+        PUSHF
 
         CLI
         XOR AX, AX
@@ -37,11 +40,13 @@ segment code
         MOV [ES:9h*4+2], AX
         STI
 
+        POPF
         POP AX
         RET
 
     int_teclado:
         PUSH AX
+        PUSHF
 
         XOR AX, AX
         IN AL, PORTA_DADO_TECLADO
@@ -56,6 +61,7 @@ segment code
         MOV AL, EOI
         OUT PORTA_CONTROLE_PIC, AL
 
+        POPF
         POP AX
         IRET
 
