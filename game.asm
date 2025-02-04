@@ -110,6 +110,7 @@ segment code
     lendo_teclas:
 
     CALL pega_tecla_no_buffer
+    CALL verifica_pause
     CALL verifica_sair
     CALL atualiza_status_controles
     CALL executa_controles
@@ -316,6 +317,89 @@ segment code
         POP AX
         RET
 
+    verifica_pause:
+        PUSH AX
+        PUSHf
+
+        MOV AL, [tecla_atual]
+        CMP AL, P_APERTADO
+        JNE _verifica_pause_1
+        CALL loop_pause
+
+        _verifica_pause_1:
+        POPF
+        POP AX
+        RET
+
+    loop_pause:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSHF
+
+        MOV BYTE [cor], branco_intenso
+        MOV BX, mensagem_pause
+        MOV CX, 12
+        MOV DH, 18
+        MOV DL, 32
+        
+        _loop_pause_proximo_caracter:
+        CALL cursor
+
+        MOV AL, [BX]
+        CALL caracter
+
+        INC DL
+        INC BX
+        LOOP _loop_pause_proximo_caracter
+
+        _loop_pause_1:
+        CALL pega_tecla_no_buffer
+        MOV AL, [tecla_atual]
+        CMP AL, P_SOLTO
+        JE _loop_pause_2
+        JMP _loop_pause_1
+
+        _loop_pause_2:
+        CALL verifica_sair
+        CALL pega_tecla_no_buffer
+        MOV AL, [tecla_atual]
+        CMP AL, P_APERTADO
+        JE _loop_pause_3
+        JMP _loop_pause_2
+
+        _loop_pause_3:
+        CALL pega_tecla_no_buffer
+        MOV AL, [tecla_atual]
+        CMP AL, P_SOLTO
+        JE _loop_pause_fim
+        JMP _loop_pause_3
+
+        _loop_pause_fim:
+        MOV BYTE [cor], preto
+        MOV BX, mensagem_pause
+        MOV CX, 12
+        MOV DH, 18
+        MOV DL, 32
+        
+        _loop_pause_limpar_proximo_caracter:
+        CALL cursor
+
+        MOV AL, [BX]
+        CALL caracter
+
+        INC DL
+        INC BX
+        LOOP _loop_pause_limpar_proximo_caracter
+
+        POPF
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+        RET
+
     verifica_sair:
         PUSH AX
         PUSHf
@@ -355,6 +439,7 @@ segment code
         INC BX
         LOOP _loop_sair_proximo_caracter
 
+        CALL pega_tecla_no_buffer
         MOV AL, [tecla_atual]
         CMP AL, Y_SOLTO
         JNE _loop_sair_2
@@ -1364,6 +1449,9 @@ segment data
 
     dificuldade_selecionada db 0
 
+    ; mensagem de jogo pausado
+    mensagem_pause db 'JOGO PAUSADO'
+
     ; mensagem de sair do jogo
     mensagem_sair db 'sair? [y]es [n]o'
 
@@ -1468,11 +1556,13 @@ segment data
     Y_SOLTO EQU 0x95
     N_SOLTO EQU 0xB1
     Q_SOLTO EQU 0x90
+    P_SOLTO EQU 0x99
+    P_APERTADO EQU 0x19
     ENTER_APERTADO EQU 0x1C
 
     global tecla
     tecla resb 8
-    tecla_atual
+    tecla_atual db 0
     global p_c
     p_c dw 0
     global p_t
