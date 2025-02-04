@@ -1,5 +1,6 @@
 segment code
     extern tecla
+    extern p_c
 
     global preparar_int9
     global salvar_modo_grafico
@@ -46,11 +47,16 @@ segment code
 
     int_teclado:
         PUSH AX
+        PUSH BX
         PUSHF
 
         XOR AX, AX
         IN AL, PORTA_DADO_TECLADO
-        MOV [tecla], AL
+
+        INC WORD [p_c]
+        AND WORD [p_c], 7 ; 0111b para resetar o contador quando chegar em 8
+        MOV BX, [p_c]
+        MOV [tecla+BX], AL
 
         ;Reiniciando o PIC
         IN AL, PORTA_CONTROLE_TECLADO
@@ -62,6 +68,7 @@ segment code
         OUT PORTA_CONTROLE_PIC, AL
 
         POPF
+        POP BX
         POP AX
         IRET
 
@@ -106,6 +113,7 @@ segment data
     Q_MINUSCULO EQU 10h
 
     modo_grafico_anterior db 0
+    
 
     IP_INT9_DOS dw 0
     CS_INT9_DOS dw 0

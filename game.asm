@@ -26,18 +26,21 @@ segment code
     CALL salvar_modo_grafico
     CALL iniciar_modo_grafico_VGA
 
-    MOV BYTE [tecla], 0 ;Porque ao abrir o programa enter e solto...
+    MOV BYTE [tecla_atual], 0 ;Porque ao abrir o programa enter e solto...
 
     CALL desenhar_bordas
     CALL desenhar_blocos
 
     loop_menu:
+
+
         CALL escreve_dificuldade_facil
         CALL escreve_dificuldade_medio
         CALL escreve_dificuldade_dificil
-        
-        MOV AL, [tecla]
-        MOV BYTE [tecla], 0
+
+        CALL pega_tecla_no_buffer
+        MOV AL, [tecla_atual]
+        MOV BYTE [tecla_atual], 0
         
         CMP AL, BAIXO_SOLTO
         JE aumenta_dificuldade
@@ -66,7 +69,33 @@ segment code
         _diminui_dificuldade_fim:
         JMP loop_menu
 
+    pega_tecla_no_buffer:
+        PUSH AX
+        PUSH BX
+        PUSHf
+
+        MOV BX, [p_c]
+        CMP BX, [p_t]
+        JE _pega_tecla_no_buffer_fim
+
+        INC WORD [p_t]
+        AND WORD [p_t], 7 ; 0111b para resetar o contador quando chegar em 8
+        MOV BX, [p_t]
+        MOV AL, [tecla + BX]
+        MOV [tecla_atual], AL
+
+        _pega_tecla_no_buffer_fim:
+
+        POPf
+        POP BX
+        POP AX
+        RET
+
     comeca_jogo:
+
+    ;limpando buffer:
+    MOV WORD [p_c], 0
+    MOV WORD [p_t], 0
 
     CALL limpa_dificuldades
     CALL define_velocidade_bola
@@ -74,9 +103,23 @@ segment code
     CALL desenhar_bola
 
     main_loop:
+    
+    PUSH AX
+    PUSHf
+
+    lendo_teclas:
+
+    CALL pega_tecla_no_buffer
     CALL verifica_sair
     CALL atualiza_status_controles
     CALL executa_controles
+
+    MOV AX, [p_c]
+    CMP AX, [p_t]
+    JNE lendo_teclas
+
+    POPf
+    POP AX
 
     CALL proximo_frame
     JMP main_loop
@@ -275,9 +318,9 @@ segment code
 
     verifica_sair:
         PUSH AX
-        PUSHF
+        PUSHf
 
-        MOV AL, [tecla]
+        MOV AL, [tecla_atual]
         CMP AL, Q_SOLTO
         JNE _verifica_sair_1
         CALL loop_sair
@@ -312,7 +355,7 @@ segment code
         INC BX
         LOOP _loop_sair_proximo_caracter
 
-        MOV AL, [tecla]
+        MOV AL, [tecla_atual]
         CMP AL, Y_SOLTO
         JNE _loop_sair_2
         JMP sair
@@ -349,8 +392,8 @@ segment code
     atualiza_status_controles:
         PUSH AX
         PUSHF
-
-        MOV AL, [tecla]
+    
+        MOV AL, [tecla_atual]
 
         CMP AL, W_APERTADO
         JNE _atualiza_status_controles_1
@@ -1428,7 +1471,12 @@ segment data
     ENTER_APERTADO EQU 0x1C
 
     global tecla
-    tecla db 0
+    tecla resb 8
+    tecla_atual
+    global p_c
+    p_c dw 0
+    global p_t
+    p_t dw 0
 
 segment stack stack
     resb 256
