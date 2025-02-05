@@ -1444,7 +1444,7 @@ segment code
         PUSHF
 
         MOV DH, 15
-        MOV DL, 30
+        MOV DL, 22
 
         MOV BYTE [cor], branco_intenso
 
@@ -1463,10 +1463,10 @@ segment code
         CALL pega_tecla_no_buffer
         MOV AL, [tecla_atual]
         
-        CMP AL, N_SOLTO
+        CMP AL, Y_SOLTO
         JE _loop_gameover_jogar_novamente
 
-        CMP AL, Y_SOLTO
+        CMP AL, N_SOLTO
         JE _loop_gameover_sair
 
         JMP _loop_gameover_verifica_tecla
@@ -1475,13 +1475,33 @@ segment code
         JMP sair
 
         _loop_gameover_jogar_novamente:
+
+        MOV DH, 15
+        MOV DL, 22
+
+        MOV BYTE [cor], preto
+
+        MOV CX, 37
+        MOV BX, mensagem_gameover
+
+        _limpa_mensagem_gameover_loop:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _limpa_mensagem_gameover_loop
+
         CALL reinicia_jogo
         JMP inicio_jogo
 
     reinicia_jogo:
-        MOV SP, stack_top
+        ;MOV SP, stack_top-2
         MOV BYTE [dificuldade_selecionada], 1
         
+        MOV WORD [bola_velocidade_x], 002h
+        MOV WORD [bola_velocidade_y], 002h
+
         MOV WORD [bola_posicao_x], 320
         MOV WORD [bola_posicao_y], 240
 
@@ -1499,6 +1519,8 @@ segment code
         MOV BYTE [bloco_3_esq_ativo], 1
         MOV BYTE [bloco_4_esq_ativo], 1
         MOV BYTE [bloco_5_esq_ativo], 1
+
+        RET
 
 segment data
     global cor
