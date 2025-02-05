@@ -28,12 +28,11 @@ segment code
 
     MOV BYTE [tecla_atual], 0 ;Porque ao abrir o programa enter e solto...
 
+    inicio_jogo:
     CALL desenhar_bordas
     CALL desenhar_blocos
 
     loop_menu:
-
-
         CALL escreve_dificuldade_facil
         CALL escreve_dificuldade_medio
         CALL escreve_dificuldade_dificil
@@ -55,9 +54,9 @@ segment code
 
         aumenta_dificuldade:
         INC BYTE [dificuldade_selecionada]
-        CMP BYTE [dificuldade_selecionada], 3
+        CMP BYTE [dificuldade_selecionada], 4
         JNE _aumenta_dificuldade_fim
-        MOV BYTE [dificuldade_selecionada], 0
+        MOV BYTE [dificuldade_selecionada], 1
         _aumenta_dificuldade_fim:
         JMP loop_menu
 
@@ -65,7 +64,7 @@ segment code
         DEC BYTE [dificuldade_selecionada]
         CMP BYTE [dificuldade_selecionada], -1
         JNE _diminui_dificuldade_fim
-        MOV BYTE [dificuldade_selecionada], 2
+        MOV BYTE [dificuldade_selecionada], 3
         _diminui_dificuldade_fim:
         JMP loop_menu
 
@@ -103,7 +102,7 @@ segment code
     CALL desenhar_bola
 
     main_loop:
-    
+
     PUSH AX
     PUSHf
 
@@ -123,6 +122,7 @@ segment code
     POP AX
 
     CALL proximo_frame
+    CALL verifica_gameover
     JMP main_loop
 
     fim:
@@ -139,7 +139,7 @@ segment code
         MOV DH, 18
         MOV DL, 37
 
-        CMP BYTE [dificuldade_selecionada], 0
+        CMP BYTE [dificuldade_selecionada], 1
         JNE _escreve_dificuldade_facil_1
         MOV BYTE [cor], verde
         JMP _escreve_dificuldade_facil_2
@@ -176,7 +176,7 @@ segment code
         MOV DH, 20
         MOV DL, 37
 
-        CMP BYTE [dificuldade_selecionada], 1
+        CMP BYTE [dificuldade_selecionada], 2
         JNE _escreve_dificuldade_medio_1
         MOV BYTE [cor], amarelo
         JMP _escreve_dificuldade_medio_2
@@ -213,7 +213,7 @@ segment code
         MOV DH, 22
         MOV DL, 37
 
-        CMP BYTE [dificuldade_selecionada], 2
+        CMP BYTE [dificuldade_selecionada], 3
         JNE _escreve_dificuldade_dificil_1
         MOV BYTE [cor], vermelho
         JMP _escreve_dificuldade_dificil_2
@@ -646,8 +646,9 @@ segment code
         PUSHf
 
         MOV AX, bola_raio
+        SUB AX, [bola_velocidade_y]
         CMP AX, [bola_posicao_y]
-        JAE quica_bola_parede_cima_fim
+        JLE quica_bola_parede_cima_fim
         NEG WORD [bola_velocidade_y]
 
         quica_bola_parede_cima_fim:
@@ -661,8 +662,9 @@ segment code
 
         MOV AX, 479
         SUB AX, bola_raio
+        SUB AX, [bola_velocidade_y]
         CMP AX, [bola_posicao_y]
-        JBE quica_bola_parede_baixo_fim
+        JGE quica_bola_parede_baixo_fim
         NEG WORD [bola_velocidade_y]
 
         quica_bola_parede_baixo_fim:
@@ -1420,6 +1422,83 @@ segment code
 
         RET 2
 
+    verifica_gameover:
+        PUSH AX
+        PUSHF
+
+        MOV AX, [bola_posicao_x]
+        CMP AX, 639
+        JBE _verifica_gameover_fim
+        CALL loop_gameover
+
+        _verifica_gameover_fim:
+        POPF
+        POP AX
+        RET
+
+    loop_gameover:
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSHF
+
+        MOV DH, 15
+        MOV DL, 30
+
+        MOV BYTE [cor], branco_intenso
+
+        MOV CX, 37
+        MOV BX, mensagem_gameover
+
+        _escreve_mensagem_gameover_loop:
+        MOV AL, [BX]
+        CALL cursor
+        CALL caracter
+        INC BX
+        INC DL
+        LOOP _escreve_mensagem_gameover_loop
+
+        _loop_gameover_verifica_tecla:
+        CALL pega_tecla_no_buffer
+        MOV AL, [tecla_atual]
+        
+        CMP AL, N_SOLTO
+        JE _loop_gameover_jogar_novamente
+
+        CMP AL, Y_SOLTO
+        JE _loop_gameover_sair
+
+        JMP _loop_gameover_verifica_tecla
+
+        _loop_gameover_sair:
+        JMP sair
+
+        _loop_gameover_jogar_novamente:
+        CALL reinicia_jogo
+        JMP inicio_jogo
+
+    reinicia_jogo:
+        MOV SP, stack_top
+        MOV BYTE [dificuldade_selecionada], 1
+        
+        MOV WORD [bola_posicao_x], 320
+        MOV WORD [bola_posicao_y], 240
+
+        MOV WORD [raquete_direita_posicao_y], 240
+        MOV WORD [raquete_esquerda_posicao_y], 240
+
+        MOV BYTE [bloco_1_dir_ativo], 1
+        MOV BYTE [bloco_2_dir_ativo], 1
+        MOV BYTE [bloco_3_dir_ativo], 1
+        MOV BYTE [bloco_4_dir_ativo], 1
+        MOV BYTE [bloco_5_dir_ativo], 1
+
+        MOV BYTE [bloco_1_esq_ativo], 1
+        MOV BYTE [bloco_2_esq_ativo], 1
+        MOV BYTE [bloco_3_esq_ativo], 1
+        MOV BYTE [bloco_4_esq_ativo], 1
+        MOV BYTE [bloco_5_esq_ativo], 1
 
 segment data
     global cor
@@ -1447,21 +1526,24 @@ segment data
     medio db 'medio'
     dificil db 'dificil'
 
-    dificuldade_selecionada db 0
+    dificuldade_selecionada db 1
 
     ; mensagem de jogo pausado
-    mensagem_pause db 'JOGO PAUSADO'
+    mensagem_pause db 'JOGO PAUSADO'; 12 caracteres
 
     ; mensagem de sair do jogo
-    mensagem_sair db 'sair? [y]es [n]o'
+    mensagem_sair db 'sair? [y]es [n]o' ;16 caracteres
+
+    ; mensagem gameover
+    mensagem_gameover db 'GAMEOVER! Jogar novamente? [y]es [n]o' ;37 caracteres
 
     ; variaveis da bola
     bola_raio equ 10
     bola_posicao_x dw 320
     bola_posicao_y dw 240
 
-    bola_velocidade_x dw 0001h
-    bola_velocidade_y dw 0001h
+    bola_velocidade_x dw 0002h
+    bola_velocidade_y dw 0002h
 
     ; variaveis de blocos
     bloco_w         equ     7
