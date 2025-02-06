@@ -708,7 +708,7 @@ segment code
 
         MOV AX, [bola_velocidade_x]
         CMP AX, 0
-        JB quica_bola_raquete_direita_fim
+        JL quica_bola_raquete_direita_fim
 
         NEG WORD [bola_velocidade_x]
 
@@ -753,7 +753,7 @@ segment code
 
         MOV AX, [bola_velocidade_x]
         CMP AX, 0
-        JA quica_bola_raquete_esquerda_fim
+        JG quica_bola_raquete_esquerda_fim
 
         NEG WORD [bola_velocidade_x]
 
@@ -1429,6 +1429,34 @@ segment code
         MOV AX, [bola_posicao_x]
         CMP AX, 639
         JBE _verifica_gameover_fim
+
+        ; apagar as raquetes e a bolinha
+        MOV BYTE [cor], preto
+        MOV AX, [raquete_esquerda_posicao_x]
+        PUSH AX
+        MOV AX, [raquete_esquerda_posicao_y]
+        PUSH AX
+        MOV AX, raquete_w
+        PUSH AX
+        MOV AX, raquete_h
+        PUSH AX
+        CALL fblock
+
+        MOV BYTE [cor], preto
+        MOV AX, [raquete_direita_posicao_x]
+        PUSH AX
+        MOV AX, [raquete_direita_posicao_y]
+        PUSH AX
+        MOV AX, raquete_w
+        PUSH AX
+        MOV AX, raquete_h
+        PUSH AX
+        CALL fblock
+
+        MOV     BYTE AL, preto
+        PUSH AX
+        CALL desenhar_bola
+
         CALL loop_gameover
 
         _verifica_gameover_fim:
@@ -1569,7 +1597,7 @@ segment data
 
     ; variaveis de blocos
     bloco_w         equ     7
-    bloco_h         equ     40
+    bloco_h         equ     43
 
     bloco_1_esq_x   dw  20
     bloco_1_esq_y   dw  48
